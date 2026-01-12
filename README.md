@@ -30,9 +30,9 @@ A Python-based CLI application for Debian servers to manage Sipwise backups.
    ```
 
 The installation script will:
-- Check for Python 3 and unzip utilities
+- Check for Python 3
 - Extract the application to `/opt/sipwise-backup/`
-- Create a wrapper script in `/usr/local/bin/sipwise-backup`
+- Create a wrapper script in `/usr/bin/sipwise-backup`
 - Register and enable the systemd service
 - Automatically start the service
 
@@ -84,7 +84,7 @@ sudo /opt/sipwise-backup/uninstall.sh
 The uninstallation script will:
 - Stop and disable the systemd service
 - Remove the systemd service file
-- Remove the wrapper script from `/usr/local/bin`
+- Remove the wrapper script from `/usr/bin`
 - Remove all application files from `/opt/sipwise-backup`
 
 ## Development
@@ -110,7 +110,7 @@ distribution/
 ├── uninstall.sh             # Uninstallation script
 └── README.md                # Documentation
 
-/usr/local/bin/
+/usr/bin/
 └── sipwise-backup           # Wrapper script
 
 /etc/systemd/system/

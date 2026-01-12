@@ -13,7 +13,7 @@ NC='\033[0m' # No Color
 
 # Installation directories
 INSTALL_DIR="/opt/sipwise-backup"
-INSTALL_BIN_DIR="/usr/local/bin"
+INSTALL_BIN_DIR="/usr/bin"
 SERVICE_DIR="/etc/systemd/system"
 APP_NAME="sipwise-backup"
 ZIP_FILE="$APP_NAME.zip"
