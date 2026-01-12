@@ -15,21 +15,26 @@ A Python-based CLI application for Debian servers to manage Sipwise backups.
 
 ## Installation
 
-1. Navigate to the sipwise-backup directory:
+1. Download the distribution package which contains:
+   - `sipwise-backup.zip` - The application package
+   - `install.sh` - The installation script
+
+2. Place both files in the same directory and navigate to it:
    ```bash
-   cd /path/to/sipwise-backup
+   cd /path/to/download/directory
    ```
 
-2. Run the installation script with sudo:
+3. Run the installation script with sudo:
    ```bash
    sudo ./install.sh
    ```
 
 The installation script will:
-- Check for Python 3 installation
-- Install the CLI application to `/usr/local/share/sipwise-backup/`
+- Check for Python 3 and unzip utilities
+- Extract the application to `/opt/sipwise-backup/`
 - Create a wrapper script in `/usr/local/bin/sipwise-backup`
-- Register the systemd service
+- Register and enable the systemd service
+- Automatically start the service
 
 ## Usage
 
@@ -70,23 +75,17 @@ sudo systemctl disable sipwise-backup
 
 ## Uninstallation
 
-To remove sipwise-backup from your system:
+To remove sipwise-backup from your system, run the uninstallation script:
 
-1. Navigate to the sipwise-backup directory:
-   ```bash
-   cd /path/to/sipwise-backup
-   ```
-
-2. Run the uninstallation script with sudo:
-   ```bash
-   sudo ./uninstall.sh
-   ```
+```bash
+sudo /opt/sipwise-backup/uninstall.sh
+```
 
 The uninstallation script will:
 - Stop and disable the systemd service
 - Remove the systemd service file
-- Remove the wrapper script
-- Remove all application files
+- Remove the wrapper script from `/usr/local/bin`
+- Remove all application files from `/opt/sipwise-backup`
 
 ## Development
 
@@ -94,13 +93,38 @@ This is the initial version with basic CLI functionality. Additional features wi
 
 ## File Structure
 
+### Distribution Package
+```
+distribution/
+├── sipwise-backup.zip       # Application package
+└── install.sh               # Installation script (outside zip)
+```
+
+### Installed System
+```
+/opt/sipwise-backup/
+├── CLI/
+│   └── main.py              # Main Python CLI application
+├── service/
+│   └── sipwise-backup.service   # systemd service file
+├── uninstall.sh             # Uninstallation script
+└── README.md                # Documentation
+
+/usr/local/bin/
+└── sipwise-backup           # Wrapper script
+
+/etc/systemd/system/
+└── sipwise-backup.service   # Registered systemd service
+```
+
+### Repository Structure
 ```
 sipwise-backup/
 ├── CLI/
 │   └── main.py              # Main Python CLI application
 ├── service/
 │   └── sipwise-backup.service   # systemd service file
-├── install.sh               # Installation script
+├── install.sh               # Installation script (not included in zip)
 ├── uninstall.sh             # Uninstallation script
 └── README.md                # This file
 ```
@@ -109,8 +133,8 @@ sipwise-backup/
 
 - **CLI/main.py**: Python-based menu interface for the application
 - **service/sipwise-backup.service**: systemd service configuration
-- **install.sh**: Handles installation, including Python checks and systemd registration
-- **uninstall.sh**: Handles complete removal of the application and service
+- **install.sh**: Extracts zip package and handles installation to `/opt`, including Python checks and systemd registration
+- **uninstall.sh**: Handles complete removal of the application and service from the system
 
 ## License
 

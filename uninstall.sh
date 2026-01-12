@@ -12,8 +12,8 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Installation directories
+INSTALL_DIR="/opt/sipwise-backup"
 INSTALL_BIN_DIR="/usr/local/bin"
-INSTALL_LIB_DIR="/usr/local/share/sipwise-backup"
 SERVICE_DIR="/etc/systemd/system"
 APP_NAME="sipwise-backup"
 
@@ -54,9 +54,9 @@ if [ -f "$INSTALL_BIN_DIR/$APP_NAME" ]; then
 fi
 
 # Remove application directory
-if [ -d "$INSTALL_LIB_DIR" ]; then
+if [ -d "$INSTALL_DIR" ]; then
     echo "Removing application files..."
-    rm -rf "$INSTALL_LIB_DIR"
+    rm -rf "$INSTALL_DIR"
 fi
 
 echo ""

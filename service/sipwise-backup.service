@@ -5,7 +5,8 @@ Documentation=https://github.com/TimothySteinert/sipwise-backup
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/sipwise-backup
+ExecStart=/opt/sipwise-backup/CLI/main.py
+WorkingDirectory=/opt/sipwise-backup
 Restart=on-failure
 RestartSec=10
 StandardOutput=journal

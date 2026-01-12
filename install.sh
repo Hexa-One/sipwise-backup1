@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # install.sh - Installation script for sipwise-backup
-# This script installs sipwise-backup Python CLI application
+# This script extracts and installs sipwise-backup Python CLI application to /opt
 
 set -e
 
@@ -12,10 +12,11 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Installation directories
+INSTALL_DIR="/opt/sipwise-backup"
 INSTALL_BIN_DIR="/usr/local/bin"
-INSTALL_LIB_DIR="/usr/local/share/sipwise-backup"
 SERVICE_DIR="/etc/systemd/system"
 APP_NAME="sipwise-backup"
+ZIP_FILE="$APP_NAME.zip"
 
 echo "======================================"
 echo "  sipwise-backup Installation"
@@ -38,49 +39,56 @@ fi
 
 echo -e "${GREEN}✓ Python3 found: $(python3 --version)${NC}"
 
-# Check if required directories exist
-if [ ! -d "./CLI" ]; then
-    echo -e "${RED}Error: CLI directory not found${NC}"
+# Check if unzip is installed
+if ! command -v unzip &> /dev/null; then
+    echo -e "${RED}Error: unzip is not installed${NC}"
+    echo "Please install unzip first: sudo apt-get install unzip"
     exit 1
 fi
 
-if [ ! -f "./CLI/main.py" ]; then
-    echo -e "${RED}Error: CLI/main.py not found${NC}"
+echo -e "${GREEN}✓ unzip found${NC}"
+
+# Check if zip file exists in current directory
+if [ ! -f "./$ZIP_FILE" ]; then
+    echo -e "${RED}Error: $ZIP_FILE not found in current directory${NC}"
+    echo "Please ensure $ZIP_FILE is in the same directory as this install script."
     exit 1
 fi
 
-if [ ! -d "./service" ]; then
-    echo -e "${RED}Error: service directory not found${NC}"
-    exit 1
-fi
+echo -e "${GREEN}✓ Found $ZIP_FILE${NC}"
+echo ""
 
-if [ ! -f "./service/$APP_NAME.service" ]; then
-    echo -e "${RED}Error: service/$APP_NAME.service not found${NC}"
-    exit 1
+# Remove existing installation if present
+if [ -d "$INSTALL_DIR" ]; then
+    echo -e "${YELLOW}Warning: Existing installation found at $INSTALL_DIR${NC}"
+    echo "Removing old installation..."
+    rm -rf "$INSTALL_DIR"
 fi
 
 # Create installation directory
-echo "Creating installation directories..."
-mkdir -p "$INSTALL_LIB_DIR"
+echo "Creating installation directory..."
+mkdir -p "$INSTALL_DIR"
 
-# Copy CLI files
-echo "Installing CLI application..."
-cp -r ./CLI "$INSTALL_LIB_DIR/"
-chmod +x "$INSTALL_LIB_DIR/CLI/main.py"
+# Extract zip file to installation directory
+echo "Extracting $ZIP_FILE to $INSTALL_DIR..."
+unzip -q "./$ZIP_FILE" -d "$INSTALL_DIR"
+
+# Make Python CLI executable
+chmod +x "$INSTALL_DIR/CLI/main.py"
 
 # Create wrapper script
 echo "Creating wrapper script..."
-cat > "$INSTALL_BIN_DIR/$APP_NAME" <<'WRAPPER_EOF'
+cat > "$INSTALL_BIN_DIR/$APP_NAME" <<WRAPPER_EOF
 #!/bin/bash
 # Wrapper script for sipwise-backup CLI
-exec python3 /usr/local/share/sipwise-backup/CLI/main.py "$@"
+exec python3 $INSTALL_DIR/CLI/main.py "\$@"
 WRAPPER_EOF
 
 chmod +x "$INSTALL_BIN_DIR/$APP_NAME"
 
 # Install systemd service
 echo "Installing systemd service..."
-cp "./service/$APP_NAME.service" "$SERVICE_DIR/"
+cp "$INSTALL_DIR/service/$APP_NAME.service" "$SERVICE_DIR/"
 
 # Reload systemd daemon
 echo "Reloading systemd daemon..."
@@ -97,6 +105,7 @@ systemctl start "$APP_NAME.service"
 echo ""
 echo -e "${GREEN}✓ Installation completed successfully!${NC}"
 echo ""
+echo "Installation location: $INSTALL_DIR"
 echo "The $APP_NAME service has been enabled and started."
 echo ""
 echo "You can now:"
@@ -104,5 +113,5 @@ echo "  1. Run the CLI: $APP_NAME"
 echo "  2. Check service status: sudo systemctl status $APP_NAME"
 echo "  3. View service logs: sudo journalctl -u $APP_NAME -f"
 echo ""
-echo "To uninstall, run: sudo ./uninstall.sh"
+echo "To uninstall, run: sudo $INSTALL_DIR/uninstall.sh"
 echo ""
