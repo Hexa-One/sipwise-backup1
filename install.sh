@@ -64,8 +64,10 @@ mkdir -p "$INSTALL_DIR"
 echo "Extracting $ZIP_FILE to $INSTALL_DIR..."
 python3 -c "import zipfile; zipfile.ZipFile('./$ZIP_FILE').extractall('$INSTALL_DIR')"
 
-# Make Python CLI executable
+# Set executable permissions
+echo "Setting file permissions..."
 chmod +x "$INSTALL_DIR/CLI/main.py"
+chmod 755 "$INSTALL_DIR/uninstall.sh"
 
 # Create wrapper script
 echo "Creating wrapper script..."
