@@ -19,6 +19,10 @@ class SipwiseBackupCLI:
         self.install_dir = "/opt/sipwise-backup"
         self.config_file = os.path.join(self.install_dir, "config.yml")
 
+    def clear_screen(self):
+        """Clear the terminal screen"""
+        os.system('clear')
+
     def show_banner(self):
         """Display application banner"""
         print("=" * 40)
@@ -88,6 +92,8 @@ class SipwiseBackupCLI:
         """Handle config menu navigation"""
         in_config_menu = True
         while in_config_menu:
+            self.clear_screen()
+            self.show_banner()
             self.show_config_menu()
             choice = self.get_user_choice()
 
@@ -96,19 +102,24 @@ class SipwiseBackupCLI:
             elif choice == "2":
                 self.restart_service()
             elif choice == "3":
-                print("\nReturning to main menu...")
                 in_config_menu = False
             elif choice == "exit":
                 self.handle_exit()
             else:
                 print(f"\nInvalid choice: {choice}")
                 print("Please select a valid option.")
+                input("\nPress Enter to continue...")
+
+        self.clear_screen()
+        self.show_banner()
 
     def handle_manual_backup(self):
         """Handle manual backup menu"""
         in_backup_menu = True
         while in_backup_menu:
-            print("\n" + "=" * 40)
+            self.clear_screen()
+            self.show_banner()
+            print("=" * 40)
             print("Later this will show progress of requested manual backup")
             print("=" * 40)
             print("\n(1) Return to main menu")
@@ -117,19 +128,24 @@ class SipwiseBackupCLI:
             choice = self.get_user_choice()
 
             if choice == "1":
-                print("\nReturning to main menu...")
                 in_backup_menu = False
             elif choice == "exit":
                 self.handle_exit()
             else:
                 print(f"\nInvalid choice: {choice}")
                 print("Please select a valid option.")
+                input("\nPress Enter to continue...")
+
+        self.clear_screen()
+        self.show_banner()
 
     def handle_list_backups(self):
         """Handle list backups menu"""
         in_list_menu = True
         while in_list_menu:
-            print("\n" + "=" * 40)
+            self.clear_screen()
+            self.show_banner()
+            print("=" * 40)
             print("Last backup time: [Will be populated later]")
             print("=" * 40)
             print("\nLater this will show a list of backups")
@@ -140,19 +156,24 @@ class SipwiseBackupCLI:
             choice = self.get_user_choice()
 
             if choice == "1":
-                print("\nReturning to main menu...")
                 in_list_menu = False
             elif choice == "exit":
                 self.handle_exit()
             else:
                 print(f"\nInvalid choice: {choice}")
                 print("Please select a valid option.")
+                input("\nPress Enter to continue...")
+
+        self.clear_screen()
+        self.show_banner()
 
     def handle_restore_backup(self):
         """Handle restore backup menu"""
         in_restore_menu = True
         while in_restore_menu:
-            print("\n" + "=" * 40)
+            self.clear_screen()
+            self.show_banner()
+            print("=" * 40)
             print("Available Backups:")
             print("=" * 40)
             print("\n[Later this will show numbered list of backups]")
@@ -166,7 +187,6 @@ class SipwiseBackupCLI:
             choice = self.get_user_choice()
 
             if choice == "0":
-                print("\nReturning to main menu...")
                 in_restore_menu = False
             elif choice == "exit":
                 self.handle_exit()
@@ -177,6 +197,10 @@ class SipwiseBackupCLI:
             else:
                 print(f"\nInvalid choice: {choice}")
                 print("Please select a valid option.")
+                input("\nPress Enter to continue...")
+
+        self.clear_screen()
+        self.show_banner()
 
     def handle_restore_confirmation(self, backup_name):
         """Handle restore confirmation process"""
@@ -212,7 +236,9 @@ class SipwiseBackupCLI:
         """Handle making DR instance live"""
         in_dr_menu = True
         while in_dr_menu:
-            print("\n" + "!" * 60)
+            self.clear_screen()
+            self.show_banner()
+            print("!" * 60)
             print("WARNING: THIS WILL MAKE THE ENVIRONMENT LIVE!")
             print("If restoring to a disaster recovery server,")
             print("ensure the main server is offline.")
@@ -230,13 +256,16 @@ class SipwiseBackupCLI:
                 input()
                 in_dr_menu = False
             elif choice == "N":
-                print("\nReturning to main menu...")
                 in_dr_menu = False
             elif choice == "EXIT":
                 self.handle_exit()
             else:
                 print(f"\nInvalid choice: {choice}")
                 print("Please enter Y or N.")
+                input("\nPress Enter to continue...")
+
+        self.clear_screen()
+        self.show_banner()
 
     def handle_exit(self):
         """Handle exit command"""
@@ -263,9 +292,13 @@ class SipwiseBackupCLI:
         else:
             print(f"\nInvalid choice: {choice}")
             print("Please select a valid option.")
+            input("\nPress Enter to continue...")
+            self.clear_screen()
+            self.show_banner()
 
     def run(self):
         """Main application loop"""
+        self.clear_screen()
         self.show_banner()
 
         while self.running:
