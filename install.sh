@@ -39,15 +39,6 @@ fi
 
 echo -e "${GREEN}✓ Python3 found: $(python3 --version)${NC}"
 
-# Check if unzip is installed
-if ! command -v unzip &> /dev/null; then
-    echo -e "${RED}Error: unzip is not installed${NC}"
-    echo "Please install unzip first: sudo apt-get install unzip"
-    exit 1
-fi
-
-echo -e "${GREEN}✓ unzip found${NC}"
-
 # Check if zip file exists in current directory
 if [ ! -f "./$ZIP_FILE" ]; then
     echo -e "${RED}Error: $ZIP_FILE not found in current directory${NC}"
@@ -69,9 +60,9 @@ fi
 echo "Creating installation directory..."
 mkdir -p "$INSTALL_DIR"
 
-# Extract zip file to installation directory
+# Extract zip file to installation directory using Python
 echo "Extracting $ZIP_FILE to $INSTALL_DIR..."
-unzip -q "./$ZIP_FILE" -d "$INSTALL_DIR"
+python3 -c "import zipfile; zipfile.ZipFile('./$ZIP_FILE').extractall('$INSTALL_DIR')"
 
 # Make Python CLI executable
 chmod +x "$INSTALL_DIR/CLI/main.py"
