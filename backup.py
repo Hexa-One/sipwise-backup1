@@ -153,7 +153,7 @@ class BackupManager:
             print(f"Error dumping MySQL database: {e}")
             return False
 
-    def run_backup(self, backup_type: str = "auto") -> Optional[str]:
+    def run_backup(self, backup_type: str = "auto", send_email: bool = True) -> Optional[str]:
         """
         Execute a full backup operation
 
@@ -167,6 +167,7 @@ class BackupManager:
 
         Args:
             backup_type: Type of backup ("auto" or "manual")
+            send_email: Whether to send email notifications (default: True)
 
         Returns:
             Backup filename if successful, None otherwise
@@ -225,6 +226,17 @@ class BackupManager:
             print("=" * 60)
             print(f"[OK] Backup completed successfully: {backup_filename}")
             print("=" * 60)
+            
+            # Send success email for all backup types if enabled
+            if send_email:
+                self.logger.info(f"Backup completed: {backup_filename}")
+                emailer.send_backup_success(
+                    backup_filename=backup_filename,
+                    storage_location=self.storage.get_storage_directory(),
+                    retention_applied=False,  # Basic backup doesn't apply retention
+                    cleanup_applied=False,
+                    deleted_count=0
+                )
 
             return backup_filename
 
@@ -239,8 +251,8 @@ class BackupManager:
             except:
                 pass
             
-            # Send failure email only for automatic backups
-            if backup_type == "auto":
+            # Send failure email for all backup types if enabled
+            if send_email:
                 self.logger.error(f"Backup failed at stage '{current_stage}': {e}")
                 emailer.send_backup_failure(
                     error_message=str(e),
