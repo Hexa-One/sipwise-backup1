@@ -115,39 +115,32 @@ class StorageManager:
             parts = name_without_ext.split('-')
 
             # Minimum parts needed:
-            # Old format: server-instance-HH-MM_DD-MM-YYYY = at least 6 parts (with single-word server)
-            # New format: server-instance-auto-HH-MM_DD-MM-YYYY = at least 7 parts
+            # Old format: server-instance-HH-MM_DD-MM-YYYY
+            #   Example: "myserver-master-14-30_13-01-2026" = 6 parts
+            # New format: server-instance-auto-HH-MM_DD-MM-YYYY
+            #   Example: "myserver-master-auto-14-30_13-01-2026" = 7 parts
             if len(parts) < 6:
                 return None
 
             # Try to detect if backup_type is present (auto/manual)
-            # New format: server-instance-auto/manual-HH-MM_DD-MM-YYYY
-            # Old format: server-instance-HH-MM_DD-MM-YYYY
             # Time is always the last 4 parts: HH, MM_DD, MM, YYYY
-            
             backup_type = "unknown"
             
             # Check if the 5th part from the end is 'auto' or 'manual'
-            # (parts[-5] would be the backup type in new format)
             if len(parts) >= 7 and parts[-5] in ['auto', 'manual']:
                 # New format with backup type
                 backup_type = parts[-5]
-                time_parts = parts[-4:]  # HH, MM_DD, MM, YYYY
                 server_instance_parts = parts[:-5]  # everything before backup_type
-                
-                # Last of server_instance_parts is instance_type
-                instance_type = server_instance_parts[-1] if server_instance_parts else 'unknown'
-                server_name = '-'.join(server_instance_parts[:-1]) if len(server_instance_parts) > 1 else 'unknown'
             else:
                 # Old format without backup type
-                time_parts = parts[-4:]  # HH, MM_DD, MM, YYYY
                 server_instance_parts = parts[:-4]  # everything before time
-                
-                instance_type = server_instance_parts[-1] if server_instance_parts else 'unknown'
-                server_name = '-'.join(server_instance_parts[:-1]) if len(server_instance_parts) > 1 else 'unknown'
-
+            
+            # Extract server_name and instance_type from server_instance_parts
+            instance_type = server_instance_parts[-1] if server_instance_parts else 'unknown'
+            server_name = '-'.join(server_instance_parts[:-1]) if len(server_instance_parts) > 1 else 'unknown'
+            
             # Parse time parts: HH, MM_DD, MM, YYYY
-            # Format is always: HH-MM_DD-MM-YYYY
+            time_parts = parts[-4:]
             hour = time_parts[0]
             minute_day = time_parts[1].split('_')
             

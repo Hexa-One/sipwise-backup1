@@ -18,6 +18,9 @@ from restore import RestoreManager
 
 class SipwiseBackupCLI:
     """Main CLI class for sipwise-backup application"""
+    
+    # Table formatting constants
+    BACKUP_TABLE_SEPARATOR_LENGTH = 77  # Length of separator line for backup tables
 
     def __init__(self):
         self.version = "1.0.0"
@@ -191,7 +194,7 @@ class SipwiseBackupCLI:
 
                     # Display table header
                     print(f"{'#':<4} {'Server Name':<25} {'Type':<12} {'Backup Type':<12} {'Date & Time':<20}")
-                    print("-" * 77)
+                    print("-" * self.BACKUP_TABLE_SEPARATOR_LENGTH)
 
                     # Display backups
                     for idx, backup in enumerate(page_backups, start=start_idx + 1):
@@ -268,7 +271,7 @@ class SipwiseBackupCLI:
 
                 # Display available backups
                 print(f"{'#':<4} {'Server Name':<25} {'Type':<12} {'Backup Type':<12} {'Date & Time':<20}")
-                print("-" * 77)
+                print("-" * self.BACKUP_TABLE_SEPARATOR_LENGTH)
 
                 for idx, backup in enumerate(backups, start=1):
                     server_name = backup['server_name']
