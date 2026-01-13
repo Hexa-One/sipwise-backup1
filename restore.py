@@ -10,8 +10,10 @@ Handles restore operations including:
 """
 
 import os
+import re
 import shutil
 import subprocess
+import socket
 from pathlib import Path
 from typing import Optional, Dict, Tuple
 import sys
@@ -104,7 +106,6 @@ class RestoreManager:
             IPv4 address string or 'unknown' if cannot determine
         """
         try:
-            import socket
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.connect(("8.8.8.8", 80))
             ip = s.getsockname()[0]
@@ -140,8 +141,10 @@ class RestoreManager:
         
         old_line = lines[self.firewall_enable_line - 1].rstrip()
         
-        # Verify this is the firewall enable line
-        if 'enable:' not in old_line:
+        # Verify this is the firewall enable line using regex
+        # Pattern matches: optional whitespace, 'enable:', optional whitespace, yes/no
+        enable_pattern = re.compile(r'^\s*enable:\s*(yes|no)\s*$')
+        if not enable_pattern.match(old_line):
             raise Exception(
                 f"Line {self.firewall_enable_line} does not appear to be firewall enable setting: {old_line}"
             )

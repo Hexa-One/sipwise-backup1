@@ -426,15 +426,9 @@ class SipwiseBackupCLI:
         self.clear_screen()
         self.show_banner()
         
-        # Get system IP
-        import socket
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.connect(("8.8.8.8", 80))
-            system_ip = s.getsockname()[0]
-            s.close()
-        except Exception:
-            system_ip = "unknown"
+        # Get system IP from RestoreManager
+        restore_manager_temp = RestoreManager(self.config_file)
+        system_ip = restore_manager_temp.get_system_ipv4()
         
         print("=" * 80)
         print("Restore Summary - DR Server")
