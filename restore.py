@@ -51,6 +51,10 @@ class RestoreManager:
         self.ngcp_config_yml = self.ngcp_config_dir / "config.yml"
         
         self.exclude_files = {"network.yml"}
+        
+        # Compile regex pattern for firewall validation (done once at init)
+        # Pattern matches: optional whitespace, 'enable:', optional whitespace, yes/no
+        self.firewall_enable_pattern = re.compile(r'^\s*enable:\s*(yes|no)\s*$')
 
     def _run_command(self, cmd: str, ignore_errors: bool = False) -> int:
         """
@@ -105,6 +109,16 @@ class RestoreManager:
         Returns:
             IPv4 address string or 'unknown' if cannot determine
         """
+        return self._get_system_ipv4_static()
+    
+    @staticmethod
+    def _get_system_ipv4_static() -> str:
+        """
+        Static method to get the primary IPv4 address of the system
+        
+        Returns:
+            IPv4 address string or 'unknown' if cannot determine
+        """
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.connect(("8.8.8.8", 80))
@@ -141,10 +155,8 @@ class RestoreManager:
         
         old_line = lines[self.firewall_enable_line - 1].rstrip()
         
-        # Verify this is the firewall enable line using regex
-        # Pattern matches: optional whitespace, 'enable:', optional whitespace, yes/no
-        enable_pattern = re.compile(r'^\s*enable:\s*(yes|no)\s*$')
-        if not enable_pattern.match(old_line):
+        # Verify this is the firewall enable line using pre-compiled regex
+        if not self.firewall_enable_pattern.match(old_line):
             raise Exception(
                 f"Line {self.firewall_enable_line} does not appear to be firewall enable setting: {old_line}"
             )

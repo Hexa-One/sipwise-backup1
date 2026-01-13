@@ -321,8 +321,7 @@ class SipwiseBackupCLI:
         backup_type = backup['instance_type']
         backup_date = backup['datetime'].strftime('%d/%m/%Y %H:%M')
         
-        # Get current server info
-        from storage import StorageManager
+        # Get current server info using existing StorageManager import
         storage = StorageManager(self.config_file)
         current_server = storage.config.get('server_name', '')
         current_type = storage.config.get('instance_type', '')
@@ -426,9 +425,8 @@ class SipwiseBackupCLI:
         self.clear_screen()
         self.show_banner()
         
-        # Get system IP from RestoreManager
-        restore_manager_temp = RestoreManager(self.config_file)
-        system_ip = restore_manager_temp.get_system_ipv4()
+        # Get system IP using static method to avoid unnecessary object creation
+        system_ip = RestoreManager._get_system_ipv4_static()
         
         print("=" * 80)
         print("Restore Summary - DR Server")
