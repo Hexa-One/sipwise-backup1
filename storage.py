@@ -549,6 +549,8 @@ class StorageManager:
         Returns:
             Tuple of (success: bool, message: str)
         """
+        self.logger.info("Testing FTP connection")
+        
         try:
             remote_config = self.config.get('storage', {}).get('remote', {})
             hostname = remote_config.get('hostname')
@@ -557,7 +559,11 @@ class StorageManager:
             directory = remote_config.get('directory', '/backups/sipwise')
             
             if not hostname:
-                return False, "FTP hostname not configured in config.yml"
+                error_msg = "FTP hostname not configured in config.yml"
+                self.logger.error(f"FTP test failed: {error_msg}")
+                return False, error_msg
+            
+            self.logger.debug(f"Testing FTP connection to {hostname}:{port}")
             
             print(f"Testing FTP connection to {hostname}:{port}...")
             print(f"Username: {username}")
@@ -586,11 +592,14 @@ class StorageManager:
             print("      ✓ Disconnected successfully")
             
             print()
-            return True, f"FTP connection test successful! Connected to {hostname}:{port}"
+            success_msg = f"FTP connection test successful! Connected to {hostname}:{port}"
+            self.logger.success("FTP connection test completed successfully")
+            return True, success_msg
             
         except Exception as e:
             error_msg = f"FTP connection test failed: {str(e)}"
             print(f"\n✗ {error_msg}")
+            self.logger.error(f"FTP test failed: {e}")
             return False, error_msg
 
 

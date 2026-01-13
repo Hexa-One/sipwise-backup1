@@ -70,8 +70,7 @@ email:
     use_tls: true   # true for TLS (port 587), false for SSL (port 465)
     use_ssl: false  # true for SSL (port 465), false for TLS
   
-  # Sender and Recipient
-  from_address: sipwise-backup@example.com
+  # Recipient
   to_address: admin@example.com
   
   # Notification Settings - when to send emails
