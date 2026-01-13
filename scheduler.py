@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import List, Dict
 import sys
 import subprocess
+import shutil
 
 # Import our modules
 from storage import StorageManager
@@ -130,9 +131,22 @@ class BackupScheduler:
         print("[!] Initiating system reboot...")
         print("=" * 80)
         
-        # Use subprocess to run the reboot command with full path for security
+        # Find the reboot command path dynamically for cross-platform support
+        reboot_cmd = shutil.which('reboot')
+        if not reboot_cmd:
+            # Try common paths as fallback
+            for path in ['/sbin/reboot', '/usr/sbin/reboot']:
+                if Path(path).exists():
+                    reboot_cmd = path
+                    break
+        
+        if not reboot_cmd:
+            print("[ERROR] Reboot command not found on this system")
+            return
+        
+        # Use subprocess to run the reboot command
         try:
-            subprocess.run(['/sbin/reboot'], check=True)
+            subprocess.run([reboot_cmd], check=True)
         except subprocess.CalledProcessError as e:
             print(f"[ERROR] Reboot command failed: {e}")
         except PermissionError:
