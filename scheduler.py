@@ -411,8 +411,9 @@ class BackupScheduler:
         print(f"SCHEDULED BACKUP - {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
         print("=" * 80)
 
-        # Run backup with type="auto"
-        result = self.backup_manager.run_backup(backup_type="auto")
+        # Run backup with type="auto", but don't send email yet
+        # (scheduler will send email with maintenance info after retention/cleanup)
+        result = self.backup_manager.run_backup(backup_type="auto", send_email=False)
 
         if result:
             self.logger.success(f"Scheduled backup completed: {result}")
