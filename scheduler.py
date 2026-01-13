@@ -143,9 +143,15 @@ class BackupScheduler:
 
             backups_by_day[day_key].append(backup)
 
+        # Get today's date string for comparison
+        today_key = datetime.now().strftime('%Y-%m-%d')
+
         # For each day, keep only the last backup
         deleted_count = 0
         for day_key, day_backups in backups_by_day.items():
+            # Skip the current day - only cleanup previous days
+            if day_key == today_key:
+                continue
             if len(day_backups) <= 1:
                 # Only one backup for this day, keep it
                 continue
