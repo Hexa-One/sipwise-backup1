@@ -109,12 +109,13 @@ class RestoreManager:
         Returns:
             IPv4 address string or 'unknown' if cannot determine
         """
-        return self._get_system_ipv4_static()
+        return self.get_system_ipv4_static()
     
     @staticmethod
-    def _get_system_ipv4_static() -> str:
+    def get_system_ipv4_static() -> str:
         """
         Static method to get the primary IPv4 address of the system
+        Can be called without creating a RestoreManager instance.
         
         Returns:
             IPv4 address string or 'unknown' if cannot determine
@@ -163,7 +164,8 @@ class RestoreManager:
                 f"Line {self.firewall_enable_line} does not appear to be firewall enable setting: {old_line}"
             )
         
-        # Get the indentation and replace value (limit split to first occurrence)
+        # Get the indentation and replace value
+        # Use split with limit=1 to handle edge cases like colons in values or comments
         indent = old_line.split("enable:", 1)[0]
         new_line = f"{indent}enable: no\n"
         
@@ -241,6 +243,8 @@ class RestoreManager:
                 f"Line {self.target_key_line} in restored constants.yml is not a key: {old_line}"
             )
 
+        # Extract indentation and rebuild line with preserved formatting
+        # Use split with limit=1 to handle edge cases like colons in key values
         indent = old_line.split("key:", 1)[0]
         new_line = f"{indent}key: {key}\n"
 

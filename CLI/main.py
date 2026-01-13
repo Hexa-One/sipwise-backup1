@@ -432,8 +432,8 @@ class SipwiseBackupCLI:
         self.clear_screen()
         self.show_banner()
         
-        # Get system IP using static method to avoid unnecessary object creation
-        system_ip = RestoreManager._get_system_ipv4_static()
+        # Get system IP using public static method
+        system_ip = RestoreManager.get_system_ipv4_static()
         
         print("=" * 80)
         print("Restore Summary - DR Server")
