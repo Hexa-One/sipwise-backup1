@@ -27,10 +27,18 @@ class SipwiseBackupCLI:
         self.running = True
         self.install_dir = "/opt/sipwise-backup"
         self.config_file = os.path.join(self.install_dir, "config.yml")
+        self._storage_manager = None  # Lazy-loaded storage manager cache
 
     def clear_screen(self):
         """Clear the terminal screen"""
         os.system('clear')
+
+    @property
+    def storage_manager(self):
+        """Lazy-loaded storage manager instance"""
+        if self._storage_manager is None:
+            self._storage_manager = StorageManager(self.config_file)
+        return self._storage_manager
 
     def show_banner(self):
         """Display application banner"""
@@ -160,7 +168,7 @@ class SipwiseBackupCLI:
     def handle_list_backups(self):
         """Handle list backups menu"""
         try:
-            storage = StorageManager(self.config_file)
+            storage = self.storage_manager
             backups = storage.list_backups()
             page_size = 15
             current_page = 0
@@ -247,7 +255,7 @@ class SipwiseBackupCLI:
     def handle_restore_backup(self):
         """Handle restore backup menu"""
         try:
-            storage = StorageManager(self.config_file)
+            storage = self.storage_manager
             backups = storage.list_backups()
 
             in_restore_menu = True
@@ -321,10 +329,9 @@ class SipwiseBackupCLI:
         backup_type = backup['instance_type']
         backup_date = backup['datetime'].strftime('%d/%m/%Y %H:%M')
         
-        # Get current server info using existing StorageManager import
-        storage = StorageManager(self.config_file)
-        current_server = storage.config.get('server_name', '')
-        current_type = storage.config.get('instance_type', '')
+        # Get current server info using cached storage manager
+        current_server = self.storage_manager.config.get('server_name', '')
+        current_type = self.storage_manager.config.get('instance_type', '')
         
         # Check if same server
         is_same_server = (backup_server == current_server and backup_type == current_type)
