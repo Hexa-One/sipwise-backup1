@@ -76,12 +76,13 @@ class StorageManager:
         else:  # remote
             return storage_config.get('remote', {}).get('directory', '/backups/sipwise')
 
-    def generate_backup_name(self, extension: str = '.zip') -> str:
+    def generate_backup_name(self, backup_type: str = "auto", extension: str = '.zip') -> str:
         """
         Generate a backup filename using the format:
-        server_name-instance_type-date(HH:MM/DD/MM/YYYY)
+        server_name-instance_type-backup_type-date(HH:MM/DD/MM/YYYY)
 
         Args:
+            backup_type: Type of backup ("auto" or "manual")
             extension: File extension (default: .zip)
 
         Returns:
@@ -94,7 +95,7 @@ class StorageManager:
         now = datetime.now()
         date_str = now.strftime("%H-%M_%d-%m-%Y")
 
-        return f"{server_name}-{instance_type}-{date_str}{extension}"
+        return f"{server_name}-{instance_type}-{backup_type}-{date_str}{extension}"
 
     def parse_backup_name(self, filename: str) -> Optional[Dict]:
         """
@@ -104,7 +105,7 @@ class StorageManager:
             filename: Backup filename to parse
 
         Returns:
-            Dictionary with server_name, instance_type, and datetime, or None if invalid
+            Dictionary with server_name, instance_type, type, and datetime, or None if invalid
         """
         try:
             # Remove extension
@@ -116,18 +117,50 @@ class StorageManager:
             if len(parts) < 5:
                 return None
 
-            # Reconstruct server name (may contain hyphens)
-            # Last 5 parts are: instance, HH, MM_DD, MM, YYYY
-            time_parts = parts[-5:]
-            server_name = '-'.join(parts[:-5])
+            # Try to detect if backup_type is present (auto/manual)
+            # New format: server-instance-type-HH-MM_DD-MM-YYYY (7+ parts)
+            # Old format: server-instance-HH-MM_DD-MM-YYYY (6+ parts)
+            
+            backup_type = "unknown"
+            
+            # Check if the third-to-last or later part before time is 'auto' or 'manual'
+            # New format has: ... instance-type-HH-MM_DD-MM-YYYY
+            # Old format has: ... instance-HH-MM_DD-MM-YYYY
+            
+            # Look for backup type by checking if any part is 'auto' or 'manual'
+            if len(parts) >= 6:
+                # Try new format first: check if part before time parts is auto/manual
+                # Last 5 parts in new format: backup_type, HH, MM_DD, MM, YYYY
+                if parts[-5] in ['auto', 'manual']:
+                    backup_type = parts[-5]
+                    time_parts = parts[-4:]  # HH, MM_DD, MM, YYYY
+                    server_instance_parts = parts[:-5]  # server-instance
+                    
+                    # Last of server_instance_parts is instance_type
+                    instance_type = server_instance_parts[-1]
+                    server_name = '-'.join(server_instance_parts[:-1])
+                else:
+                    # Old format: instance, HH, MM_DD, MM, YYYY
+                    time_parts = parts[-4:]
+                    server_instance_parts = parts[:-4]
+                    
+                    instance_type = server_instance_parts[-1]
+                    server_name = '-'.join(server_instance_parts[:-1])
+            else:
+                # Fallback for old format with minimum parts
+                time_parts = parts[-4:]
+                server_instance_parts = parts[:-4]
+                
+                instance_type = server_instance_parts[-1] if server_instance_parts else 'unknown'
+                server_name = '-'.join(server_instance_parts[:-1]) if len(server_instance_parts) > 1 else 'unknown'
 
-            instance_type = time_parts[0]
-            hour = time_parts[1]
-            minute_day = time_parts[2].split('_')
+            # Parse time parts: HH, MM_DD, MM, YYYY
+            hour = time_parts[0]
+            minute_day = time_parts[1].split('_')
             minute = minute_day[0]
-            day = minute_day[1] if len(minute_day) > 1 else time_parts[3]
-            month = time_parts[3] if len(minute_day) > 1 else time_parts[4]
-            year = time_parts[4] if len(minute_day) > 1 else parts[-1]
+            day = minute_day[1] if len(minute_day) > 1 else time_parts[2]
+            month = time_parts[2] if len(minute_day) > 1 else time_parts[3]
+            year = time_parts[3] if len(minute_day) > 1 else parts[-1]
 
             # Create datetime object
             dt = datetime.strptime(f"{year}-{month}-{day} {hour}:{minute}", "%Y-%m-%d %H:%M")
@@ -135,6 +168,7 @@ class StorageManager:
             return {
                 'server_name': server_name,
                 'instance_type': instance_type,
+                'type': backup_type,
                 'datetime': dt,
                 'filename': filename
             }
