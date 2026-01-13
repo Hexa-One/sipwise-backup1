@@ -191,7 +191,7 @@ class SipwiseBackupCLI:
 
                     # Display table header
                     print(f"{'#':<4} {'Server Name':<25} {'Type':<12} {'Backup Type':<12} {'Date & Time':<20}")
-                    print("-" * 73)
+                    print("-" * 77)
 
                     # Display backups
                     for idx, backup in enumerate(page_backups, start=start_idx + 1):
@@ -268,7 +268,7 @@ class SipwiseBackupCLI:
 
                 # Display available backups
                 print(f"{'#':<4} {'Server Name':<25} {'Type':<12} {'Backup Type':<12} {'Date & Time':<20}")
-                print("-" * 73)
+                print("-" * 77)
 
                 for idx, backup in enumerate(backups, start=1):
                     server_name = backup['server_name']

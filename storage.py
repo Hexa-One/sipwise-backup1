@@ -147,11 +147,18 @@ class StorageManager:
                 server_name = '-'.join(server_instance_parts[:-1]) if len(server_instance_parts) > 1 else 'unknown'
 
             # Parse time parts: HH, MM_DD, MM, YYYY
+            # Format is always: HH-MM_DD-MM-YYYY
             hour = time_parts[0]
             minute_day = time_parts[1].split('_')
+            
+            # Expect MM_DD format with underscore
+            if len(minute_day) != 2:
+                # Malformed filename - missing underscore in MM_DD
+                return None
+            
             minute = minute_day[0]
-            day = minute_day[1] if len(minute_day) > 1 else time_parts[2]
-            month = time_parts[2] if len(minute_day) > 1 else time_parts[3]
+            day = minute_day[1]
+            month = time_parts[2]
             year = time_parts[3]
 
             # Create datetime object
