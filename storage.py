@@ -13,7 +13,7 @@ import yaml
 import zipfile
 import shutil
 from datetime import datetime
-from ftplib import FTP
+from ftplib import FTP, error_perm
 from typing import List, Dict, Optional, Tuple
 
 from logger import get_logger
@@ -83,7 +83,7 @@ class StorageManager:
         # Create directory if it doesn't exist and navigate to it
         try:
             ftp.cwd(directory)
-        except:
+        except error_perm:
             # Try to create the directory path
             self._ftp_mkdirs(ftp, directory)
             ftp.cwd(directory)
@@ -98,7 +98,7 @@ class StorageManager:
             current += '/' + d
             try:
                 ftp.cwd(current)
-            except:
+            except error_perm:
                 ftp.mkd(current)
 
     def get_storage_type(self) -> str:

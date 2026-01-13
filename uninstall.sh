@@ -96,16 +96,18 @@ if [ -d "$INSTALL_DIR" ]; then
     if [ "$KEEP_DATA" = true ]; then
         echo "Removing application files (keeping backups and logs)..."
         
-        # Remove everything except backups and log directories
+        # Remove everything except backups, log, and state directories
         find "$INSTALL_DIR" -mindepth 1 -maxdepth 1 \
             ! -name "backups" \
             ! -name "log" \
+            ! -name "state" \
             -exec rm -rf {} +
         
         echo ""
         echo -e "${GREEN}✓ Application removed. Data preserved at:${NC}"
         echo "   - Backups: $INSTALL_DIR/backups/"
         echo "   - Logs: $INSTALL_DIR/log/"
+        echo "   - State: $INSTALL_DIR/state/"
     else
         echo "Removing ALL application files..."
         rm -rf "$INSTALL_DIR"

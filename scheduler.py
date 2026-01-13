@@ -5,6 +5,7 @@ Handles automatic backup scheduling, retention policy, and cleanup
 """
 
 import time
+import json
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict
@@ -16,6 +17,7 @@ import shutil
 from storage import StorageManager
 from backup import BackupManager
 from logger import get_logger
+
 
 
 class BackupScheduler:
@@ -48,7 +50,6 @@ class BackupScheduler:
         """Load scheduler state from file"""
         try:
             if self.state_file.exists():
-                import json
                 with open(self.state_file, 'r') as f:
                     return json.load(f)
         except Exception as e:
@@ -58,7 +59,6 @@ class BackupScheduler:
     def _save_state(self, state: dict):
         """Save scheduler state to file"""
         try:
-            import json
             with open(self.state_file, 'w') as f:
                 json.dump(state, f, indent=2)
         except Exception as e:
