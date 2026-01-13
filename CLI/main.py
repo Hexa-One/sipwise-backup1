@@ -9,6 +9,10 @@ import sys
 import os
 import subprocess
 
+# Add parent directory to path to import backup module
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from backup import BackupManager
+
 
 class SipwiseBackupCLI:
     """Main CLI class for sipwise-backup application"""
@@ -115,26 +119,36 @@ class SipwiseBackupCLI:
 
     def handle_manual_backup(self):
         """Handle manual backup menu"""
-        in_backup_menu = True
-        while in_backup_menu:
-            self.clear_screen()
-            self.show_banner()
-            print("=" * 40)
-            print("Later this will show progress of requested manual backup")
-            print("=" * 40)
-            print("\n(1) Return to main menu")
+        self.clear_screen()
+        self.show_banner()
+        print("=" * 60)
+        print("Manual Backup")
+        print("=" * 60)
+        print()
+
+        try:
+            # Create backup manager and run backup
+            backup_manager = BackupManager(self.config_file)
+
+            print("Starting manual backup...")
             print()
 
-            choice = self.get_user_choice()
+            result = backup_manager.run_backup()
 
-            if choice == "1":
-                in_backup_menu = False
-            elif choice == "exit":
-                self.handle_exit()
+            print()
+            if result:
+                print(f"✓ Backup completed successfully!")
+                print(f"  Backup file: {result}")
             else:
-                print(f"\nInvalid choice: {choice}")
-                print("Please select a valid option.")
-                input("\nPress Enter to continue...")
+                print("✗ Backup failed. Check the output above for errors.")
+
+        except Exception as e:
+            print()
+            print(f"✗ Error during backup: {e}")
+
+        print()
+        print("Press Enter to return to main menu...")
+        input()
 
         self.clear_screen()
         self.show_banner()
