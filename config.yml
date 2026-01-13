@@ -24,6 +24,10 @@ storage:
 # Backup Settings (Master only)
 # ----------------------------------------------------------
 backup:
+  mysql:
+    user: root
+    password: changeme
+
   automatic:
     enabled: true
     frequency:
