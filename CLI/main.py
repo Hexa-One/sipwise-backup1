@@ -450,17 +450,9 @@ class SipwiseBackupCLI:
 def main():
     """Entry point for the application"""
     try:
-        # Check if running as a service (stdin is not a TTY)
-        if not sys.stdin.isatty():
-            # Running as a service - start scheduler
-            print("Running in service mode - starting scheduler")
-            sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            from scheduler import run_scheduler
-            run_scheduler()
-        else:
-            # Running in interactive mode - show CLI
-            cli = SipwiseBackupCLI()
-            cli.run()
+        # Always run in interactive CLI mode
+        cli = SipwiseBackupCLI()
+        cli.run()
     except KeyboardInterrupt:
         print("\n\nInterrupted. Exiting...")
         sys.exit(0)

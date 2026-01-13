@@ -200,43 +200,64 @@ class BackupScheduler:
         """
         Main scheduler loop
 
-        Continuously checks if backups should run based on schedule
+        Service runs continuously. If automatic backups are enabled,
+        it runs backups on schedule. If disabled, it idles and periodically
+        checks if automatic backups have been enabled.
         """
         print("=" * 80)
         print("Sipwise Backup Scheduler Starting")
         print("=" * 80)
 
-        # Check if automatic backups are enabled
-        if not self.is_automatic_backup_enabled():
-            print("Automatic backups are DISABLED in config")
-            print("Scheduler will not run")
-            print("=" * 80)
-            return
-
-        frequency_seconds = self.get_backup_frequency_seconds()
-        backup_config = self.config.get('backup', {})
-        automatic_config = backup_config.get('automatic', {})
-        frequency_config = automatic_config.get('frequency', {})
-        value = frequency_config.get('value', 1)
-        unit = frequency_config.get('unit', 'hours')
-
-        print(f"Automatic backups ENABLED")
-        print(f"Frequency: Every {value} {unit} ({frequency_seconds} seconds)")
-        print(f"Next backup: {(datetime.now() + timedelta(seconds=frequency_seconds)).strftime('%d/%m/%Y %H:%M:%S')}")
-        print("=" * 80)
-
         self.running = True
         last_backup_time = None
+        last_config_check = time.time()
+        config_check_interval = 300  # Check config every 5 minutes
 
         while self.running:
             try:
                 current_time = time.time()
+
+                # Periodically reload config to check if settings changed
+                if current_time - last_config_check >= config_check_interval:
+                    self.config = self.storage._load_config()
+                    last_config_check = current_time
+
+                # Check if automatic backups are enabled
+                if not self.is_automatic_backup_enabled():
+                    # Automatic backups disabled - idle
+                    if current_time - last_config_check < 10:  # Just checked
+                        print("Automatic backups are DISABLED in config")
+                        print("Service will idle and check config periodically")
+                        print("=" * 80)
+
+                    # Sleep for a minute before checking again
+                    time.sleep(60)
+                    continue
+
+                # Automatic backups enabled - run scheduler
+                frequency_seconds = self.get_backup_frequency_seconds()
+
+                # Print status on first run or after config change
+                if last_backup_time is None:
+                    backup_config = self.config.get('backup', {})
+                    automatic_config = backup_config.get('automatic', {})
+                    frequency_config = automatic_config.get('frequency', {})
+                    value = frequency_config.get('value', 1)
+                    unit = frequency_config.get('unit', 'hours')
+
+                    print(f"Automatic backups ENABLED")
+                    print(f"Frequency: Every {value} {unit} ({frequency_seconds} seconds)")
+                    print(f"Next backup: {(datetime.now() + timedelta(seconds=frequency_seconds)).strftime('%d/%m/%Y %H:%M:%S')}")
+                    print("=" * 80)
 
                 # Check if it's time for a backup
                 if last_backup_time is None or (current_time - last_backup_time) >= frequency_seconds:
                     # Run scheduled backup
                     self.run_scheduled_backup()
                     last_backup_time = current_time
+
+                    # Recalculate frequency in case config changed
+                    frequency_seconds = self.get_backup_frequency_seconds()
 
                     # Calculate next backup time
                     next_backup = datetime.now() + timedelta(seconds=frequency_seconds)

@@ -5,7 +5,7 @@ Documentation=https://github.com/TimothySteinert/sipwise-backup
 
 [Service]
 Type=simple
-ExecStart=/opt/sipwise-backup/CLI/main.py
+ExecStart=/usr/bin/python3 /opt/sipwise-backup/scheduler.py
 WorkingDirectory=/opt/sipwise-backup
 Restart=on-failure
 RestartSec=10
