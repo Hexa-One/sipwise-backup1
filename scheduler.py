@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict
 import sys
+import subprocess
 
 # Import our modules
 from storage import StorageManager
@@ -29,6 +30,7 @@ class BackupScheduler:
         self.backup_manager = BackupManager(config_path)
         self.config = self.storage.config
         self.running = False
+        self.last_reboot_month = None  # Track last reboot to prevent duplicates
 
     def is_automatic_backup_enabled(self) -> bool:
         """
@@ -62,6 +64,67 @@ class BackupScheduler:
         else:
             # Default to hours
             return value * 60 * 60
+
+    def is_automatic_reboot_enabled(self) -> bool:
+        """
+        Check if automatic reboot is enabled
+        
+        Returns:
+            True if enabled, False otherwise
+        """
+        reboot_config = self.config.get('reboot', {})
+        return reboot_config.get('automatic', 'disabled') == 'enabled'
+
+    def get_reboot_schedule(self) -> Dict[str, any]:
+        """
+        Get the reboot schedule configuration
+        
+        Returns:
+            Dictionary with 'day_of_month' (int) and 'time' (str in HH:MM format)
+        """
+        reboot_config = self.config.get('reboot', {})
+        schedule_config = reboot_config.get('schedule', {})
+        return {
+            'day_of_month': schedule_config.get('day_of_month', 1),
+            'time': schedule_config.get('time', '03:00')
+        }
+
+    def should_reboot_now(self) -> bool:
+        """
+        Check if it's time to perform the scheduled reboot
+        
+        Returns:
+            True if current date/time matches the reboot schedule
+        """
+        schedule = self.get_reboot_schedule()
+        now = datetime.now()
+        
+        # Check if today is the scheduled day of month
+        if now.day != schedule['day_of_month']:
+            return False
+        
+        # Parse scheduled time
+        scheduled_time = schedule['time']
+        scheduled_hour, scheduled_minute = map(int, scheduled_time.split(':'))
+        
+        # Check if current time matches (within the current minute)
+        if now.hour == scheduled_hour and now.minute == scheduled_minute:
+            return True
+        
+        return False
+
+    def perform_reboot(self):
+        """
+        Perform the system reboot
+        """
+        print("\n" + "=" * 80)
+        print(f"SCHEDULED REBOOT - {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
+        print("=" * 80)
+        print("[!] Initiating system reboot...")
+        print("=" * 80)
+        
+        # Use subprocess to run the reboot command
+        subprocess.run(['reboot'], check=True)
 
     def apply_retention_policy(self):
         """
@@ -284,6 +347,15 @@ class BackupScheduler:
                     print(f"Automatic backups ENABLED")
                     print(f"Frequency: Every {value} {unit} ({frequency_seconds} seconds)")
                     print(f"Next backup: {(datetime.now() + timedelta(seconds=frequency_seconds)).strftime('%d/%m/%Y %H:%M:%S')}")
+                    print()
+                    
+                    # Print reboot schedule status
+                    if self.is_automatic_reboot_enabled():
+                        reboot_schedule = self.get_reboot_schedule()
+                        print(f"Automatic reboot ENABLED")
+                        print(f"Schedule: Day {reboot_schedule['day_of_month']} of each month at {reboot_schedule['time']}")
+                    else:
+                        print(f"Automatic reboot DISABLED")
                     print("=" * 80)
 
                 # Check if it's time for a backup
@@ -298,6 +370,15 @@ class BackupScheduler:
                     # Calculate next backup time
                     next_backup = datetime.now() + timedelta(seconds=frequency_seconds)
                     print(f"\nNext backup: {next_backup.strftime('%d/%m/%Y %H:%M:%S')}")
+
+                # Check for scheduled reboot
+                if self.is_automatic_reboot_enabled():
+                    if self.should_reboot_now():
+                        # Check if we already rebooted this month
+                        current_month_key = datetime.now().strftime('%Y-%m')
+                        if self.last_reboot_month != current_month_key:
+                            self.perform_reboot()
+                            self.last_reboot_month = current_month_key
 
                 # Sleep for a minute before checking again
                 time.sleep(60)
