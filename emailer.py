@@ -13,6 +13,8 @@ from typing import Dict, Optional
 from pathlib import Path
 import yaml
 
+from logger import get_logger
+
 
 class EmailNotifier:
     """Handles email notifications for sipwise-backup"""
@@ -27,6 +29,7 @@ class EmailNotifier:
         self.config_path = config_path
         self.config = self._load_config()
         self.log_dir = Path("/opt/sipwise-backup/log")
+        self.logger = get_logger(config_path)
     
     def _load_config(self) -> dict:
         """Load configuration from config.yml"""
@@ -122,12 +125,16 @@ IP Address: {server['ip']}
             use_tls = smtp_config.get('use_tls', True)
             use_ssl = smtp_config.get('use_ssl', False)
             
-            from_addr = email_config.get('from_address', username)
+            from_addr = smtp_config.get('username')
             to_addr = email_config.get('to_address')
             
             if not host or not to_addr:
-                print("[EMAIL] SMTP host or recipient not configured")
+                error_msg = "SMTP host or recipient not configured"
+                print(f"[EMAIL] {error_msg}")
+                self.logger.error(f"Email send failed: {error_msg}")
                 return False
+            
+            self.logger.debug(f"Sending email to {to_addr} via {host}:{port}")
             
             # Create message
             msg = MIMEMultipart()
@@ -150,11 +157,15 @@ IP Address: {server['ip']}
             server.sendmail(from_addr, to_addr, msg.as_string())
             server.quit()
             
-            print(f"[EMAIL] Notification sent to {to_addr}")
+            success_msg = f"Notification sent to {to_addr}"
+            print(f"[EMAIL] {success_msg}")
+            self.logger.success(f"Email sent successfully: {subject}")
             return True
             
         except Exception as e:
-            print(f"[EMAIL] Failed to send notification: {e}")
+            error_msg = f"Failed to send notification: {e}"
+            print(f"[EMAIL] {error_msg}")
+            self.logger.error(f"Email send failed: {e}")
             return False
     
     def send_backup_success(self, backup_filename: str, storage_location: str,
@@ -301,9 +312,13 @@ Recommended Actions:
         Returns:
             True if sent successfully, False otherwise
         """
+        self.logger.info("Testing email configuration")
+        
         if not self.is_enabled():
-            print("[EMAIL] Email notifications are disabled in config.yml")
+            error_msg = "Email notifications are disabled in config.yml"
+            print(f"[EMAIL] {error_msg}")
             print("Please set email.enabled to true to test email functionality")
+            self.logger.warn(error_msg)
             return False
         
         subject = self._build_subject("Email Test", "SUCCESS")
@@ -331,7 +346,14 @@ If you received this email, your SMTP configuration is working correctly!
         
         body += self._build_footer()
         
-        return self._send_email(subject, body)
+        result = self._send_email(subject, body)
+        
+        if result:
+            self.logger.success("Email test completed successfully")
+        else:
+            self.logger.error("Email test failed")
+        
+        return result
 
 
 # Convenience functions

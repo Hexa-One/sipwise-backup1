@@ -106,6 +106,9 @@ class SipwiseBackupCLI:
         except PermissionError:
             print("Error: Permission denied. Try running:")
             print("  sudo systemctl restart sipwise-backup")
+        
+        print()
+        input("Press Enter to continue...")
     
     def test_send_email(self):
         """Test email configuration by sending a test email"""
@@ -142,7 +145,6 @@ class SipwiseBackupCLI:
             print(f"  Username: {smtp_config.get('username')}")
             print(f"  Use TLS: {smtp_config.get('use_tls')}")
             print(f"  Use SSL: {smtp_config.get('use_ssl')}")
-            print(f"  From: {email_config.get('from_address')}")
             print(f"  To: {email_config.get('to_address')}")
             print()
             
