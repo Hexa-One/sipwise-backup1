@@ -290,6 +290,42 @@ Recommended Actions:
         body += self._build_footer()
         
         return self._send_email(subject, body)
+    
+    def test_send_email(self) -> bool:
+        """
+        Send a test email to verify SMTP configuration
+        
+        Returns:
+            True if sent successfully, False otherwise
+        """
+        if not self.is_enabled():
+            print("[EMAIL] Email notifications are disabled in config.yml")
+            print("Please set email.enabled to true to test email functionality")
+            return False
+        
+        subject = self._build_subject("Email Test", "SUCCESS")
+        
+        body = f"""EMAIL TEST SUCCESSFUL
+
+This is a test email from sipwise-backup to verify your SMTP configuration.
+
+Server: {self.get_server_info()['name']} ({self.get_server_info()['type']})
+Date/Time: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
+
+SMTP Configuration:
+- Host: {self.config.get('email', {}).get('smtp', {}).get('host')}
+- Port: {self.config.get('email', {}).get('smtp', {}).get('port')}
+- TLS: {self.config.get('email', {}).get('smtp', {}).get('use_tls')}
+- SSL: {self.config.get('email', {}).get('smtp', {}).get('use_ssl')}
+
+Recipient: {self.config.get('email', {}).get('to_address')}
+
+If you received this email, your SMTP configuration is working correctly!
+"""
+        
+        body += self._build_footer()
+        
+        return self._send_email(subject, body)
 
 
 # Convenience functions
