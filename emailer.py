@@ -168,7 +168,7 @@ IP Address: {server['ip']}
             self.logger.error(f"Email send failed: {e}")
             return False
     
-    def send_backup_success(self, backup_filename: str, storage_location: str,
+    def send_backup_success(self, backup_filename: str, storage_location: str = None,
                            retention_applied: bool = False, cleanup_applied: bool = False,
                            deleted_count: int = 0) -> bool:
         """
@@ -176,7 +176,7 @@ IP Address: {server['ip']}
         
         Args:
             backup_filename: Name of the backup file created
-            storage_location: Where the backup was saved
+            storage_location: (Deprecated) Storage location is now read from config.yml
             retention_applied: Whether retention policy was applied
             cleanup_applied: Whether cleanup policy was applied
             deleted_count: Number of old backups deleted
@@ -187,22 +187,39 @@ IP Address: {server['ip']}
         subject = self._build_subject("Backup", "SUCCESS")
         server_info = self.get_server_info()
         
+        # Get storage type and format location
+        storage_config = self.config.get('storage', {})
+        storage_type = storage_config.get('type', 'local')
+        
+        if storage_type == 'remote':
+            remote_config = storage_config.get('remote', {})
+            hostname = remote_config.get('hostname', 'unknown')
+            directory = remote_config.get('directory', '/')
+            # Format as hostname/directory
+            formatted_location = f"{hostname}{directory}"
+            storage_type_display = "Remote (FTP)"
+        else:
+            local_config = storage_config.get('local', {})
+            formatted_location = local_config.get('directory', '/opt/sipwise-backup/backups')
+            storage_type_display = "Local"
+        
         body = f"""BACKUP SUCCESSFUL
 
 Server: {server_info['name']} ({server_info['type']})
 Date/Time: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
 
 Backup Details:
-- Backup File: {backup_filename}
-- Storage Location: {storage_location}
+- Backup Name: {backup_filename}
+- Storage Type: {storage_type_display}
+- Storage Location: {formatted_location}
 """
         
         if retention_applied or cleanup_applied:
             body += "\nMaintenance Applied:\n"
             if retention_applied:
-                body += f"- Retention policy applied\n"
+                body += "- Retention policy applied\n"
             if cleanup_applied:
-                body += f"- Cleanup policy applied\n"
+                body += "- Cleanup policy applied\n"
             if deleted_count > 0:
                 body += f"- {deleted_count} old backup(s) deleted\n"
         
