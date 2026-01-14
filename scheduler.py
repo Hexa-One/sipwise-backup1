@@ -494,7 +494,7 @@ class BackupScheduler:
             self.emailer.send_reboot_success(reboot_initiated_at=reboot_datetime)
             
             # Clear the pending notification
-            state['pending_reboot_notification'] = None
+            state.pop('pending_reboot_notification', None)
             self._save_state(state)
             self.logger.success("Reboot success notification sent")
         
